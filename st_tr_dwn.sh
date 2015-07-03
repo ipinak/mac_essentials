@@ -1,9 +1,9 @@
 #!/bin/bash
-#
-# ipinak - 05/08/13
-# See which downloads has been tracked by you computer and either
-# delete them or do nothing.
-#
+
+if [ "$1" == "help" ]; then
+    echo "usage: ./st_tr_dwn.sh"
+    exit 1
+fi
 
 PREFS=${HOME}/Library/Preferences
 
