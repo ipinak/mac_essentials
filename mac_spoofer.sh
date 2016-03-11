@@ -7,9 +7,7 @@ function usage() {
 if [ "$1" == "help" ]; then
     usage
     exit 1
-fi
-
-if [ ! $# -eq 1 ]; then
+elif [ ! $# -eq 1 ]; then
     usage
     exit -1
 fi
@@ -25,8 +23,19 @@ function mk_mac_addr() {
     MAC=`openssl rand -hex 6 | sed 's/\(..\)/\1:/g; s/.$//'`
 }
 
-save_mac_addr
-mk_mac_addr
+function run() {
+    save_mac_addr
+    mk_mac_addr
 
-echo "Your new MAC: " ${MAC}
-sudo ifconfig ${IF} ether ${MAC}
+    sudo ifconfig ${IF} ether ${MAC}
+}
+
+run
+OLD_MAC=$(ifconfig ${IF} | grep ether | sed 's/[^\t]ether\ //')
+
+while [ $OLD_MAC != $MAC ]
+do
+    run
+    OLD_MAC=$(ifconfig ${IF} | grep ether | sed 's/[^\t]ether\ //')
+done
+
