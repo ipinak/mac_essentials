@@ -1,4 +1,12 @@
 #!/bin/bash
+# This script is intended to be used for spoofing mac addresses of NICs. The
+# way this is done is through `ifconfig`. Also, it's important to say that
+# this script can run as a startup script.
+
+# Handle inputs
+IF=$1
+TIMES=0
+
 
 function usage() {
     echo "usage: ./mac_spoofer.sh <interface>"
@@ -11,8 +19,6 @@ elif [ ! $# -eq 1 ]; then
     usage
     exit -1
 fi
-
-IF=$1
 
 function save_mac_addr() {
     ifconfig ${IF} | grep "ether:*" | sed "s/ether/\ /" >> ~/.macs
@@ -27,15 +33,20 @@ function run() {
     save_mac_addr
     mk_mac_addr
 
-    sudo ifconfig ${IF} ether ${MAC}
+    ifconfig ${IF} ether ${MAC}
+    OLD_MAC=$(ifconfig ${IF} | grep ether | sed 's/[^\t]ether\ //')
 }
 
 run
-OLD_MAC=$(ifconfig ${IF} | grep ether | sed 's/[^\t]ether\ //')
 
 while [ $OLD_MAC != $MAC ]
 do
+    ((TIMES++))
     run
-    OLD_MAC=$(ifconfig ${IF} | grep ether | sed 's/[^\t]ether\ //')
-done
 
+    if [ $TIMES -eq 3 ];
+    then
+        echo "Oooops..."
+        exit -1
+    fi
+done
